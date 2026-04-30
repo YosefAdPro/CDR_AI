@@ -322,7 +322,7 @@ if ( isset($_REQUEST['need_csv']) && $_REQUEST['need_csv'] == 'true' ) {
 		fclose($handle);
 		$sth = null;
 	}
-	echo '<p class="dl_csv"><a class="btn btn-info" href="dl.php?csv='.base64_encode($csv_fname).'">הורד קובץ CSV</a></p>';
+	echo '<p class="my-4"><a class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition" href="dl.php?csv='.base64_encode($csv_fname).'"><i class="fas fa-download"></i> הורד קובץ CSV</a></p>';
 }
 
 if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
@@ -382,89 +382,98 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 			$stats_count = count($superresult);
 			$stats_avg = $stats_count > 0 ? intval($stats['total_billsec'] / $stats_count) : 0;
 
+			// count message
 			if ( $tot_calls_raw > $result_limit ) {
-				echo '<p class="center title">Показаны '. ($result_limit - $filtered_count) .' из '. $tot_calls_raw;
-				echo Config::get('display.main.duphide') == 1 ? ', מסונן ' . $filtered_count : '';
-				echo ' רשומות </p>';
+				$count_msg = 'מוצגים ' . ($result_limit - $filtered_count) . ' מתוך ' . $tot_calls_raw;
 			} else {
-				echo '<p class="center title">נמצאו '. $tot_calls_raw;
-				echo Config::get('display.main.duphide') == 1 ? ', מסונן ' . $filtered_count : '';
-				echo ' רשומות</p>';
+				$count_msg = 'נמצאו ' . $tot_calls_raw;
 			}
+			if ( Config::get('display.main.duphide') == 1 && $filtered_count ) {
+				$count_msg .= ', מסונן ' . $filtered_count;
+			}
+			$count_msg .= ' רשומות';
 
-			// בר סטטיסטיקות
+			// stats KPI cards
 			$stats_total_fmt = sprintf('%02d:%02d', intval($stats['total_billsec']/60), $stats['total_billsec']%60);
 			$stats_avg_fmt   = sprintf('%02d:%02d', intval($stats_avg/60), $stats_avg%60);
+			$answered_pct = $stats_count > 0 ? intval($stats['ANSWERED'] / $stats_count * 100) : 0;
 			echo '
-			<div class="stats-bar">
-				<div class="stat-item stat-answered">
-					<span class="stat-num">'.$stats['ANSWERED'].'</span>
-					<span class="stat-label">נענו</span>
+			<div class="flex items-center justify-between mb-3 mt-6">
+				<h2 class="text-base font-semibold text-gray-700">' . $count_msg . '</h2>
+			</div>
+			<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
+				<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-center">
+					<div class="text-2xl font-bold text-gray-800">'.$stats_count.'</div>
+					<div class="text-xs text-gray-500 mt-1">סה"כ שיחות</div>
 				</div>
-				<div class="stat-item stat-noanswer">
-					<span class="stat-num">'.$stats['NO ANSWER'].'</span>
-					<span class="stat-label">לא נענו</span>
+				<div class="bg-white rounded-xl shadow-sm border border-green-100 p-4 text-center">
+					<div class="text-2xl font-bold text-green-600">'.$stats['ANSWERED'].'</div>
+					<div class="text-xs text-gray-500 mt-1">נענו</div>
 				</div>
-				<div class="stat-item stat-busy">
-					<span class="stat-num">'.$stats['BUSY'].'</span>
-					<span class="stat-label">תפוסים</span>
+				<div class="bg-white rounded-xl shadow-sm border border-red-100 p-4 text-center">
+					<div class="text-2xl font-bold text-red-500">'.$stats['NO ANSWER'].'</div>
+					<div class="text-xs text-gray-500 mt-1">לא נענו</div>
 				</div>
-				<div class="stat-item stat-avg">
-					<span class="stat-num">'.$stats_avg_fmt.'</span>
-					<span class="stat-label">משך ממוצע</span>
+				<div class="bg-white rounded-xl shadow-sm border border-yellow-100 p-4 text-center">
+					<div class="text-2xl font-bold text-yellow-500">'.$stats['BUSY'].'</div>
+					<div class="text-xs text-gray-500 mt-1">תפוסים</div>
 				</div>
-				<div class="stat-item stat-total">
-					<span class="stat-num">'.$stats_total_fmt.'</span>
-					<span class="stat-label">סה"כ זמן שיחה</span>
+				<div class="bg-white rounded-xl shadow-sm border border-indigo-100 p-4 text-center">
+					<div class="text-2xl font-bold text-indigo-600">'.$stats_avg_fmt.'</div>
+					<div class="text-xs text-gray-500 mt-1">משך ממוצע</div>
+				</div>
+				<div class="bg-white rounded-xl shadow-sm border border-purple-100 p-4 text-center">
+					<div class="text-2xl font-bold text-purple-600">'.$stats_total_fmt.'</div>
+					<div class="text-xs text-gray-500 mt-1">סה"כ זמן</div>
 				</div>
 			</div>
-			<table class="cdr">';
+			<div class="bg-white rounded-2xl shadow-md overflow-x-auto">
+			<table class="w-full text-sm">';
 
 			foreach ( $superresult as $key => $row ) {			
 				++$i;
 				if ( $i == Config::get('display.main.header_step') ) {
 				?>
-					<tr>
-					<th class="record_col">תאריך </th>
-					<th class="record_col">מצב </th>
-					<th class="record_col">מחייג</th>
-					<th class="record_col">מחוייג</th>
+					<tr class="bg-gray-50 border-b border-gray-200">
+					<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">תאריך</th>
+					<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">מצב</th>
+					<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">מחייג</th>
+					<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">מחוייג</th>
 					<?php
 					if ( Config::exists('display.column.did') && Config::get('display.column.did') == 1 ) {
-						echo '<th class="record_col">DID</th>';
+						echo '<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">DID</th>';
 					}
-					?>					
-					<th class="record_col">משך שיחה</th>
+					?>
+					<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">משך שיחה</th>
 					<?php
 					if ( $use_callrates === true ) {
 						if ( Config::exists('display.column.callrates') && Config::get('display.column.callrates') == 1 ) {
-							echo '<th class="record_col">Тариф</th>';
+							echo '<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">תעריף</th>';
 						}
-						// Показать Направление
 						if ( Config::exists('display.column.callrates_dst') && Config::get('display.column.callrates_dst') == 1 ) {
-							echo '<th class="record_col">יעד</th>';
+							echo '<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">יעד</th>';
 						}
 					}
 					if ( Config::exists('display.column.lastapp') && Config::get('display.column.lastapp') == 1 ) {
-						echo '<th class="record_col">Приложение</th>';
+						echo '<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">אפליקציה</th>';
 					}
 					if ( Config::exists('display.column.channel') && Config::get('display.column.channel') == 1 ) {
-						echo '<th class="record_col">Вх. канал</th>';
+						echo '<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">ערוץ נכנס</th>';
 					}
 					if ( Config::exists('display.column.clid') && Config::get('display.column.clid') == 1 ) {
-						echo '<th class="record_col">CallerID</th>';
+						echo '<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">CallerID</th>';
 					}
 					if ( Config::exists('display.column.dstchannel') && Config::get('display.column.dstchannel') == 1 ) {
-						echo '<th class="record_col">Исх. канал</th>';
+						echo '<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">ערוץ יוצא</th>';
 					}
 					if ( Config::exists('display.column.file') && Config::get('display.column.file') == 1 ) {
-						echo '<th class="record_col">הקלטה</th>';
+						echo '<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">הקלטה</th>';
 					}
 					if ( Config::exists('display.column.accountcode') && Config::get('display.column.accountcode') == 1 ) {
-						echo '<th class="record_col">Аккаунт</th>';
+						echo '<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">קוד חשבון</th>';
 					}
 					if ( Config::exists('display.column.userfield') && Config::get('display.column.userfield') == 1 ) {
-						echo '<th class="record_col">Комментарий</th>';
+						echo '<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">הערה</th>';
 					}
 					?>
 					</tr>
@@ -473,7 +482,7 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 				}
 				
 				$dispClass = 'row-' . strtolower(str_replace(' ', '', $row['disposition']));
-				echo '<tr class="record '.$dispClass.'" data-id="'.$row['id'].'" data-disposition="'.htmlspecialchars($row['disposition']).'">';
+				echo '<tr class="border-b border-gray-100 transition-colors record '.$dispClass.'" data-id="'.$row['id'].'" data-disposition="'.htmlspecialchars($row['disposition']).'">';
 				formatCallDate($row['calldate'],$row['uniqueid']);
 				formatDisposition($row['disposition'], $row['amaflags']);
 				formatSrc($row['src'],$row['clid']);
@@ -523,7 +532,7 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 		catch (PDOException $e) {
 			print $e->getMessage();
 		}
-		echo '</table>';
+		echo '</table></div>';
 		$sth = null;
 	}
 }
@@ -646,13 +655,16 @@ if ( isset($_REQUEST['need_chart']) && $_REQUEST['need_chart'] == 'true' ) {
 	$tot_duration = sprintf('%02d', intval($tot_duration_secs/60)).':'.sprintf('%02d', intval($tot_duration_secs%60));
 
 	if ( $tot_calls ) {
-		echo '<p class="center title">סיכום של '.$graph_col_title.'</p><table class="cdr">
-		<tr>
-			<th class="end_col">'. $graph_col_title . '</th>
-			<th class="center_col">סה"כ שיחות: '. $tot_calls .' | שיחות מקסימליות: '. $max_calls .' | סה"כ משך שיחה: '. $tot_duration .'</th>
-			<th class="end_col">אורך שיחה ממוצע</th>
-		</tr>';
-	
+		echo '<div class="mt-6">
+		<h3 class="text-sm font-semibold text-gray-600 mb-3">סיכום לפי ' . $graph_col_title . ' &mdash; סה"כ: ' . $tot_calls . ' | מקסימום: ' . $max_calls . ' | משך: ' . $tot_duration . '</h3>
+		<div class="bg-white rounded-2xl shadow-md overflow-x-auto">
+		<table class="w-full text-sm">
+		<thead><tr class="bg-gray-50 border-b border-gray-200">
+			<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase">' . $graph_col_title . '</th>
+			<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase">שיחות / משך</th>
+			<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase">ממוצע</th>
+		</tr></thead><tbody>';
+
 		foreach ($result_array as $row) {
 			$avg_call_time = sprintf('%02d', intval(($row[2]/$row[1])/60)).':'.sprintf('%02d', intval($row[2]/$row[1]%60));
 			$bar_calls = $row[1]/$max_calls*100;
@@ -660,11 +672,13 @@ if ( isset($_REQUEST['need_chart']) && $_REQUEST['need_chart'] == 'true' ) {
 			$bar_duration = $row[2]/$max_duration*100;
 			$percent_tot_duration = intval($row[2]/$tot_duration_secs*100);
 			$html_duration = sprintf('%02d', intval($row[2]/60)).':'.sprintf('%02d', intval($row[2]%60));
-			echo '<tr>';
-			echo "<td class=\"end_col\">$row[0]</td><td class=\"center_col\"><div class=\"bar_calls\" style=\"width : $bar_calls%\">$row[1] - $percent_tot_calls%</div><div class=\"bar_duration\" style=\"width : $bar_duration%\">$html_duration - $percent_tot_duration%</div></td><td class=\"chart_data\">$avg_call_time</td>";
+			echo '<tr class="border-b border-gray-100 hover:bg-gray-50">';
+			echo "<td class=\"px-3 py-2 text-gray-700 whitespace-nowrap\">$row[0]</td>";
+			echo "<td class=\"px-3 py-2\"><div class=\"h-4 bg-indigo-500 rounded text-white text-xs flex items-center px-1 mb-1\" style=\"width:max(2%,{$bar_calls}%)\">$row[1] ($percent_tot_calls%)</div><div class=\"h-4 bg-purple-400 rounded text-white text-xs flex items-center px-1\" style=\"width:max(2%,{$bar_duration}%)\">$html_duration ($percent_tot_duration%)</div></td>";
+			echo "<td class=\"px-3 py-2 text-gray-600 tabular-nums whitespace-nowrap\">$avg_call_time</td>";
 			echo '</tr>';
 		}
-		echo "</table>";
+		echo "</tbody></table></div></div>";
 	}
 }
 
@@ -674,13 +688,14 @@ if ( isset($_REQUEST['need_minutes_report']) && $_REQUEST['need_minutes_report']
 	$tot_calls = 0;
 	$tot_duration = 0;
 
-	echo '<p class="center title">צריכת דקות לפי '.$graph_col_title.'</p><table class="cdr">
-		<tr>
-			<th class="end_col">'. $graph_col_title . '</th>
-			<th class="end_col">מספר שיחות</th>
-			<th class="end_col">דקות לחיוב</th>
-			<th class="end_col">אורך שיחה ממוצע</th>
-		</tr>';
+	echo '<div class="mt-6"><h3 class="text-sm font-semibold text-gray-600 mb-3">צריכת דקות לפי ' . $graph_col_title . '</h3>
+	<div class="bg-white rounded-2xl shadow-md overflow-x-auto">
+	<table class="w-full text-sm"><thead><tr class="bg-gray-50 border-b border-gray-200">
+		<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase">' . $graph_col_title . '</th>
+		<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase">מספר שיחות</th>
+		<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase">דקות לחיוב</th>
+		<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase">משך ממוצע</th>
+	</tr></thead><tbody>';
 
 	try {
 		$sth = $dbh->query($query2);
@@ -692,8 +707,8 @@ if ( isset($_REQUEST['need_minutes_report']) && $_REQUEST['need_minutes_report']
 			$html_duration = sprintf('%02d', intval($row[3]/60)).':'.sprintf('%02d', intval($row[3]%60));
 			$html_duration_avg	= sprintf('%02d', intval(($row[3]/$row[1])/60)).':'.sprintf('%02d', intval(($row[3]/$row[1])%60));
 
-			echo '<tr class="record">';
-			echo "<td class=\"end_col\">$row[0]</td><td class=\"chart_data\">$row[1]</td><td class=\"chart_data\">$html_duration</td><td class=\"chart_data\">$html_duration_avg</td>";
+			echo '<tr class="border-b border-gray-100 hover:bg-gray-50">';
+			echo "<td class=\"px-3 py-2 text-gray-700\">$row[0]</td><td class=\"px-3 py-2 text-gray-700 tabular-nums\">$row[1]</td><td class=\"px-3 py-2 text-gray-700 tabular-nums\">$html_duration</td><td class=\"px-3 py-2 text-gray-700 tabular-nums\">$html_duration_avg</td>";
 			echo '</tr>';
 			
 			$tot_duration += $row[3];
@@ -708,10 +723,10 @@ if ( isset($_REQUEST['need_minutes_report']) && $_REQUEST['need_minutes_report']
 	$html_duration = sprintf('%02d', intval($tot_duration/60)).':'.sprintf('%02d', intval($tot_duration%60));
 	$html_duration_avg = sprintf( '%02d', ($tot_calls ? intval(($tot_duration/$tot_calls)/60) : 0) ).':'.sprintf( '%02d', ($tot_calls ? intval(($tot_duration/$tot_calls)%60) : 0) );
 
-	echo '<tr>';
-	echo "<th class=\"chart_data\">סך הכל</th><th class=\"chart_data\">$tot_calls</th><th class=\"chart_data\">$html_duration</th><th class=\"chart_data\">$html_duration_avg</th>";
+	echo '<tr class="bg-gray-50 font-semibold">';
+	echo "<td class=\"px-3 py-2 text-gray-800\">סך הכל</td><td class=\"px-3 py-2 text-gray-800 tabular-nums\">$tot_calls</td><td class=\"px-3 py-2 text-gray-800 tabular-nums\">$html_duration</td><td class=\"px-3 py-2 text-gray-800 tabular-nums\">$html_duration_avg</td>";
 	echo '</tr>';
-	echo '</table>';
+	echo '</tbody></table></div></div>';
 }
 
 if ( isset($_REQUEST['need_chart_cc']) && $_REQUEST['need_chart_cc'] == 'true' ) {
@@ -818,25 +833,28 @@ if ( isset($_REQUEST['need_chart_cc']) && $_REQUEST['need_chart_cc'] == 'true' )
 		}
 	}
 	if ( $tot_calls ) {
-		echo '<p class="center title">כמות שיחות בו זמנית במשך '.$graph_col_title.'</p><table class="cdr">
-		<tr>
-			<th class="end_col">'. $graph_col_title . '</th>
-			<th class="center_col">סה"כ שיחות: '. $tot_calls .' | שיחות מקסימליות: '. $max_calls .'</th>
-			<th class="end_col">תאריך</th>
-		</tr>';
-	
+		echo '<div class="mt-6"><h3 class="text-sm font-semibold text-gray-600 mb-3">שיחות בו-זמנית לפי ' . $graph_col_title . ' &mdash; סה"כ: ' . $tot_calls . ' | מקסימום: ' . $max_calls . '</h3>
+		<div class="bg-white rounded-2xl shadow-md overflow-x-auto">
+		<table class="w-full text-sm"><thead><tr class="bg-gray-50 border-b border-gray-200">
+			<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase">' . $graph_col_title . '</th>
+			<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase">שיחות בו-זמניות</th>
+			<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase">תאריך</th>
+		</tr></thead><tbody>';
+
 		ksort($result_array_cc);
 
 		foreach ( array_keys($result_array_cc) as $group_by_key ) {
 			$full_time = strftime( '%Y-%m-%d %H:%M:%S', $result_array_cc[ "$group_by_key" ][0] );
 			$group_by_cur = $result_array_cc[ "$group_by_key" ][1];
 			$bar_calls = $group_by_cur/$max_calls*100;
-			echo '<tr>';
-			echo "<td class=\"end_col\">$group_by_key</td><td class=\"center_col\"><div class=\"bar_calls\" style=\"width : $bar_calls%\">&nbsp;$group_by_cur</div></td><td class=\"end_col\">$full_time</td>";
+			echo '<tr class="border-b border-gray-100 hover:bg-gray-50">';
+			echo "<td class=\"px-3 py-2 text-gray-700\">$group_by_key</td>";
+			echo "<td class=\"px-3 py-2\"><div class=\"h-5 bg-indigo-500 rounded text-white text-xs flex items-center px-1\" style=\"width:max(2%,{$bar_calls}%)\">$group_by_cur</div></td>";
+			echo "<td class=\"px-3 py-2 text-gray-600 whitespace-nowrap\">$full_time</td>";
 			echo '</tr>';
 		}
 
-		echo '</table>';
+		echo '</tbody></table></div></div>';
 	}
 }
 
@@ -846,15 +864,16 @@ if ( isset($_REQUEST['need_asr_report']) && $_REQUEST['need_asr_report'] == 'tru
 	$tot_calls = 0;
 	$tot_duration = 0;
 
-	echo '<p class="center title">ASR и ACD по '.$graph_col_title.'</p><table class="cdr">
-		<tr>
-			<th class="end_col">'. $graph_col_title . '</th>
-			<th class="end_col">ASR</th>
-			<th class="end_col">ACD</th>
-			<th class="end_col">סה"כ שיחות</th>
-			<th class="end_col">שיחות שנענו</th>
-			<th class="end_col">שניות לחיוב</th>
-		</tr>';
+	echo '<div class="mt-6"><h3 class="text-sm font-semibold text-gray-600 mb-3">ASR ו-ACD לפי ' . $graph_col_title . '</h3>
+	<div class="bg-white rounded-2xl shadow-md overflow-x-auto">
+	<table class="w-full text-sm"><thead><tr class="bg-gray-50 border-b border-gray-200">
+		<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase">' . $graph_col_title . '</th>
+		<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase">ASR %</th>
+		<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase">ACD</th>
+		<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase">סה"כ שיחות</th>
+		<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase">נענו</th>
+		<th class="px-3 py-3 text-right text-xs font-semibold text-gray-500 uppercase">שניות לחיוב</th>
+	</tr></thead><tbody>';
 
 	$asr_cur_key = '';
 	$asr_answered_calls = 0;
@@ -873,8 +892,8 @@ if ( isset($_REQUEST['need_asr_report']) && $_REQUEST['need_asr_report'] == 'tru
 		}
 		while ($row = $sth->fetch(PDO::FETCH_NUM)) {
 			if ( $asr_cur_key != '' && $row[0] != $asr_cur_key ) {
-				echo '<tr  class="record">';
-				echo "<td class=\"end_col\">$asr_cur_key</td><td class=\"chart_data\">",intval(($asr_answered_calls/$asr_total_calls)*100),"</td><td class=\"chart_data\">",intval($asr_bill_secs/($asr_answered_calls?$asr_answered_calls:1)),"</td><td class=\"chart_data\">$asr_total_calls</td><td class=\"chart_data\">$asr_answered_calls</td><td class=\"chart_data\">$asr_bill_secs</td>";
+				echo '<tr class="border-b border-gray-100 hover:bg-gray-50">';
+				echo "<td class=\"px-3 py-2 text-gray-700\">$asr_cur_key</td><td class=\"px-3 py-2 tabular-nums\">",intval(($asr_answered_calls/$asr_total_calls)*100),"%</td><td class=\"px-3 py-2 tabular-nums\">",intval($asr_bill_secs/($asr_answered_calls?$asr_answered_calls:1)),"</td><td class=\"px-3 py-2 tabular-nums\">$asr_total_calls</td><td class=\"px-3 py-2 tabular-nums\">$asr_answered_calls</td><td class=\"px-3 py-2 tabular-nums\">$asr_bill_secs</td>";
 				echo '</tr>';
 				$asr_answered_calls = $asr_total_calls = $asr_bill_secs = 0;
 			}
@@ -897,15 +916,15 @@ if ( isset($_REQUEST['need_asr_report']) && $_REQUEST['need_asr_report'] == 'tru
 	$sth = null;
 
 	if ( $asr_cur_key != '' ) {
-		echo '<tr class="record">';
-		echo "<td class=\"end_col\">$asr_cur_key</td><td class=\"chart_data\">",($asr_total_calls ? intval(($asr_answered_calls/$asr_total_calls)*100) : 0),"</td><td class=\"chart_data\">",intval($asr_bill_secs/($asr_answered_calls?$asr_answered_calls:1)),"</td><td class=\"chart_data\">$asr_total_calls</td><td class=\"chart_data\">$asr_answered_calls</td><td class=\"chart_data\">$asr_bill_secs</td>";
+		echo '<tr class="border-b border-gray-100 hover:bg-gray-50">';
+		echo "<td class=\"px-3 py-2 text-gray-700\">$asr_cur_key</td><td class=\"px-3 py-2 tabular-nums\">",($asr_total_calls ? intval(($asr_answered_calls/$asr_total_calls)*100) : 0),"%</td><td class=\"px-3 py-2 tabular-nums\">",intval($asr_bill_secs/($asr_answered_calls?$asr_answered_calls:1)),"</td><td class=\"px-3 py-2 tabular-nums\">$asr_total_calls</td><td class=\"px-3 py-2 tabular-nums\">$asr_answered_calls</td><td class=\"px-3 py-2 tabular-nums\">$asr_bill_secs</td>";
 		echo '</tr>';
 	}
 
-	echo '<tr>';
-	echo "<th class=\"chart_data\">סך הכל</th><th class=\"chart_data\">",($all_asr_total_calls ? intval(($all_asr_answered_calls/$all_asr_total_calls)*100) : 0),"</th><th class=\"chart_data\">",intval($all_asr_bill_secs/($all_asr_answered_calls?$all_asr_answered_calls:1)),"</th><th class=\"chart_data\">$all_asr_total_calls</th><th class=\"chart_data\">$all_asr_answered_calls</th><th class=\"chart_data\">$all_asr_bill_secs</th>";
+	echo '<tr class="bg-gray-50 font-semibold">';
+	echo "<td class=\"px-3 py-2 text-gray-800\">סך הכל</td><td class=\"px-3 py-2 tabular-nums\">",($all_asr_total_calls ? intval(($all_asr_answered_calls/$all_asr_total_calls)*100) : 0),"%</td><td class=\"px-3 py-2 tabular-nums\">",intval($all_asr_bill_secs/($all_asr_answered_calls?$all_asr_answered_calls:1)),"</td><td class=\"px-3 py-2 tabular-nums\">$all_asr_total_calls</td><td class=\"px-3 py-2 tabular-nums\">$all_asr_answered_calls</td><td class=\"px-3 py-2 tabular-nums\">$all_asr_bill_secs</td>";
 	echo '</tr>';
-	echo '</table>';
+	echo '</tbody></table></div></div>';
 
 }
 
