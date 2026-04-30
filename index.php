@@ -393,6 +393,8 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 			}
 
 			// בר סטטיסטיקות
+			$stats_total_fmt = sprintf('%02d:%02d', intval($stats['total_billsec']/60), $stats['total_billsec']%60);
+			$stats_avg_fmt   = sprintf('%02d:%02d', intval($stats_avg/60), $stats_avg%60);
 			echo '
 			<div class="stats-bar">
 				<div class="stat-item stat-answered">
@@ -408,11 +410,11 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 					<span class="stat-label">תפוסים</span>
 				</div>
 				<div class="stat-item stat-avg">
-					<span class="stat-num">'.sprintf('%02d:%02d', intval($stats_avg/60), $stats_avg%60).'</span>
+					<span class="stat-num">'.$stats_avg_fmt.'</span>
 					<span class="stat-label">משך ממוצע</span>
 				</div>
 				<div class="stat-item stat-total">
-					<span class="stat-num">'.sprintf('%02d:%02d', intval($stats[\'total_billsec\']/60), $stats[\'total_billsec\']%60).'</span>
+					<span class="stat-num">'.$stats_total_fmt.'</span>
 					<span class="stat-label">סה"כ זמן שיחה</span>
 				</div>
 			</div>
