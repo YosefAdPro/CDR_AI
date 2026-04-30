@@ -1,3 +1,14 @@
+<!-- Page title -->
+<div class="mb-6 flex items-center gap-4">
+    <div class="gradient-bg text-white p-3 rounded-2xl shadow-md shrink-0">
+        <i class="fas fa-phone-volume text-2xl"></i>
+    </div>
+    <div>
+        <h1 class="text-xl font-bold text-gray-800"><?php echo Config::get('site.main.head'); ?></h1>
+        <p class="text-sm text-gray-500">חיפוש שיחות והקלטות</p>
+    </div>
+</div>
+
 <div class="bg-white rounded-2xl shadow-md p-6 mb-6" id="form-container">
     <div id="form-loader" class="hidden absolute inset-0 flex items-center justify-center z-10 bg-white/60 rounded-2xl">
         <div class="cssload-loader"><div class="cssload-inner cssload-one"></div><div class="cssload-inner cssload-two"></div><div class="cssload-inner cssload-three"></div></div>
@@ -75,8 +86,8 @@
                     <div class="flex gap-2 items-center">
                         <input type="radio" name="order" value="<?php echo $field; ?>" class="accent-purple-500 shrink-0">
                         <input type="text" name="<?php echo $field; ?>" id="<?php echo $field; ?>"
-                            class="flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-purple-400">
-                        <select name="<?php echo $field; ?>_mod" class="border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-purple-400 shrink-0">
+                            class="w-36 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-purple-400">
+                        <select name="<?php echo $field; ?>_mod" class="w-28 border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-purple-400 shrink-0">
                             <option value="begins_with">מתחיל ב</option>
                             <option value="contains">מכיל</option>
                             <option value="ends_with">מסתיים ב</option>
