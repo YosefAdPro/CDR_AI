@@ -40,6 +40,9 @@ var playerOverlayId = '#playerOverlay',
 	// Изменение поля "Комментарий" (userfield)
 	userfieldEdit = <?php echo Config::exists('display.main.userfield_edit') && Config::get('display.main.userfield_edit') == 1 ? 'true' : 'false'; ?>;
 </script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/he.js"></script>
 <script src="img/script.js?<?php echo filemtime('img/script.js'); ?>"></script>
 </head>
 <body>

@@ -373,15 +373,51 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 			} else {
 				$superresult = $rawresult;
 			}
+			// חישוב סטטיסטיקות
+			$stats = array('ANSWERED' => 0, 'NO ANSWER' => 0, 'BUSY' => 0, 'FAILED' => 0, 'total_billsec' => 0);
+			foreach($superresult as $r) {
+				if(array_key_exists($r['disposition'], $stats)) $stats[$r['disposition']]++;
+				$stats['total_billsec'] += intval($r['billsec']);
+			}
+			$stats_count = count($superresult);
+			$stats_avg = $stats_count > 0 ? intval($stats['total_billsec'] / $stats_count) : 0;
+
 			if ( $tot_calls_raw > $result_limit ) {
 				echo '<p class="center title">Показаны '. ($result_limit - $filtered_count) .' из '. $tot_calls_raw;
 				echo Config::get('display.main.duphide') == 1 ? ', מסונן ' . $filtered_count : '';
-				echo ' רשומות </p><table class="cdr">';
+				echo ' רשומות </p>';
 			} else {
-				echo '<p class="center title">נמצאו'. $tot_calls_raw;
+				echo '<p class="center title">נמצאו '. $tot_calls_raw;
 				echo Config::get('display.main.duphide') == 1 ? ', מסונן ' . $filtered_count : '';
-				echo ' רשומות </p><table class="cdr">';
+				echo ' רשומות</p>';
 			}
+
+			// בר סטטיסטיקות
+			echo '
+			<div class="stats-bar">
+				<div class="stat-item stat-answered">
+					<span class="stat-num">'.$stats['ANSWERED'].'</span>
+					<span class="stat-label">נענו</span>
+				</div>
+				<div class="stat-item stat-noanswer">
+					<span class="stat-num">'.$stats['NO ANSWER'].'</span>
+					<span class="stat-label">לא נענו</span>
+				</div>
+				<div class="stat-item stat-busy">
+					<span class="stat-num">'.$stats['BUSY'].'</span>
+					<span class="stat-label">תפוסים</span>
+				</div>
+				<div class="stat-item stat-avg">
+					<span class="stat-num">'.sprintf('%02d:%02d', intval($stats_avg/60), $stats_avg%60).'</span>
+					<span class="stat-label">משך ממוצע</span>
+				</div>
+				<div class="stat-item stat-total">
+					<span class="stat-num">'.sprintf('%02d:%02d', intval($stats[\'total_billsec\']/60), $stats[\'total_billsec\']%60).'</span>
+					<span class="stat-label">סה"כ זמן שיחה</span>
+				</div>
+			</div>
+			<table class="cdr">';
+
 			foreach ( $superresult as $key => $row ) {			
 				++$i;
 				if ( $i == Config::get('display.main.header_step') ) {
@@ -434,7 +470,8 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 					$i = 0;
 				}
 				
-				echo '<tr class="record" data-id="'.$row['id'].'">';
+				$dispClass = 'row-' . strtolower(str_replace(' ', '', $row['disposition']));
+				echo '<tr class="record '.$dispClass.'" data-id="'.$row['id'].'" data-disposition="'.htmlspecialchars($row['disposition']).'">';
 				formatCallDate($row['calldate'],$row['uniqueid']);
 				formatDisposition($row['disposition'], $row['amaflags']);
 				formatSrc($row['src'],$row['clid']);
