@@ -167,13 +167,13 @@
             <!-- Calls by Hour Chart -->
             <div class="bg-white rounded-xl card-shadow p-6">
                 <h3 class="text-lg font-semibold mb-4">התפלגות שיחות לפי שעה</h3>
-                <canvas id="callsByHourChart" height="300"></canvas>
+                <div style="position:relative;height:260px"><canvas id="callsByHourChart"></canvas></div>
             </div>
 
             <!-- Call Status Distribution -->
             <div class="bg-white rounded-xl card-shadow p-6">
                 <h3 class="text-lg font-semibold mb-4">התפלגות סטטוס שיחות</h3>
-                <canvas id="callStatusChart" height="300"></canvas>
+                <div style="position:relative;height:260px"><canvas id="callStatusChart"></canvas></div>
             </div>
         </div>
 
@@ -306,8 +306,8 @@
             <!-- Average Wait Time -->
             <div class="bg-white rounded-xl card-shadow p-6">
                 <h3 class="text-lg font-semibold mb-4">זמן המתנה ממוצע</h3>
-                <div class="relative">
-                    <canvas id="waitTimeGauge" height="200"></canvas>
+                <div style="position:relative;height:180px">
+                    <canvas id="waitTimeGauge"></canvas>
                 </div>
                 <div class="text-center mt-4">
                     <p class="text-3xl font-bold text-gray-800"><?php echo sprintf('%02d:%02d', floor($avgWaitTime/60), $avgWaitTime%60); ?></p>
@@ -318,8 +318,8 @@
             <!-- Service Level -->
             <div class="bg-white rounded-xl card-shadow p-6">
                 <h3 class="text-lg font-semibold mb-4">רמת שירות (SLA)</h3>
-                <div class="relative">
-                    <canvas id="slaGauge" height="200"></canvas>
+                <div style="position:relative;height:180px">
+                    <canvas id="slaGauge"></canvas>
                 </div>
                 <div class="text-center mt-4">
                     <p class="text-3xl font-bold text-gray-800"><?php echo $slaPercentage; ?>%</p>
@@ -330,7 +330,7 @@
             <!-- Call Duration Distribution -->
             <div class="bg-white rounded-xl card-shadow p-6">
                 <h3 class="text-lg font-semibold mb-4">התפלגות משך שיחות</h3>
-                <canvas id="durationChart" height="200"></canvas>
+                <div style="position:relative;height:180px"><canvas id="durationChart"></canvas></div>
             </div>
         </div>
     </div>
