@@ -131,120 +131,109 @@ function formatFiles($row) {
 
 /* CDR Table Display Functions */
 function formatCallDate($calldate, $uniqueid) {
-	//$calldate = date('d.m.Y H:i:s', strtotime($calldate));
-	echo '<td class="record_col"><abbr class="simptip-position-top simptip-smooth simptip-fade" data-clipboard data-clipboard-text="'.$uniqueid.'" data-tooltip="מזהה שיחה: '.$uniqueid.'">'.$calldate.'</abbr></td>' . PHP_EOL;
+	echo '<td class="px-3 py-2 text-sm text-gray-700 whitespace-nowrap"><abbr class="simptip-position-top simptip-smooth simptip-fade cursor-pointer" data-clipboard data-clipboard-text="'.$uniqueid.'" data-tooltip="מזהה: '.$uniqueid.'">'.$calldate.'</abbr></td>' . PHP_EOL;
 }
 
 function formatChannel($channel) {
 	$chan['short'] = preg_replace('#(.*)\/[^\/]+$#', '$1', $channel);
-	$chan['full'] = preg_replace('#(.*)-[^-]+$#', '$1', $channel);
-	$chan['tooltip'] = $chan['full'];
-	$chan['txt'] = $chan['short'];
-	if ( Config::exists('display.main.full_channel_tooltip') && Config::get('display.main.full_channel_tooltip') == 1 ) {
-		$chan['tooltip'] = $channel;
-	}
-	if ( Config::exists('display.main.full_channel') && Config::get('display.main.full_channel') == 1 ) {
-		$chan['txt'] = $chan['full'];
-	}
-	echo '<td class="record_col"><abbr class="simptip-position-top simptip-smooth simptip-fade" data-clipboard data-clipboard-text="'.$chan['tooltip'].'" data-tooltip="Канал: '.$chan['tooltip'].'">'.$chan['txt'].'</abbr></td>' . PHP_EOL;
+	$chan['full']  = preg_replace('#(.*)-[^-]+$#', '$1', $channel);
+	$chan['tooltip'] = Config::exists('display.main.full_channel_tooltip') && Config::get('display.main.full_channel_tooltip') == 1 ? $channel : $chan['full'];
+	$chan['txt']     = Config::exists('display.main.full_channel') && Config::get('display.main.full_channel') == 1 ? $chan['full'] : $chan['short'];
+	echo '<td class="px-3 py-2 text-sm text-gray-600"><abbr class="simptip-position-top simptip-smooth simptip-fade" data-clipboard data-clipboard-text="'.$chan['tooltip'].'" data-tooltip="ערוץ: '.$chan['tooltip'].'">'.$chan['txt'].'</abbr></td>' . PHP_EOL;
 }
 
 function formatClid($clid) {
-	$clid_only = explode(' <', $clid, 2);
-	$clid_only = htmlspecialchars($clid_only[0]);
+	$clid_only = htmlspecialchars(explode(' <', $clid, 2)[0]);
 	$clid = htmlspecialchars($clid);
-	echo '<td class="record_col"><abbr class="simptip-position-top simptip-smooth simptip-fade" data-clipboard data-clipboard-text="'.$clid.'" data-tooltip="CallerID: '.$clid.'">'.$clid_only.'</abbr></td>' . PHP_EOL;
+	echo '<td class="px-3 py-2 text-sm text-gray-700"><abbr class="simptip-position-top simptip-smooth simptip-fade" data-clipboard data-clipboard-text="'.$clid.'" data-tooltip="CallerID: '.$clid.'">'.$clid_only.'</abbr></td>' . PHP_EOL;
 }
 
 function formatSrc($src, $clid) {
 	if ( empty($src) ) {
-		echo '<td class="record_col">Неизвестно</td>' . PHP_EOL;
+		echo '<td class="px-3 py-2 text-sm text-gray-400 italic">לא ידוע</td>' . PHP_EOL;
 	} else {
 		$src = htmlspecialchars($src);
 		$clid = htmlspecialchars($clid);
 		$src_show = $src;
 		$clipboard = 'data-clipboard data-clipboard-text="'.$clid.'"';
 		if ( is_numeric($src) && strlen($src) >= Config::get('display.lookup.num_length') && strlen(Config::get('display.lookup.url')) > 0 ) {
-			$rev = str_replace( '%n', $src, Config::get('display.lookup.url') );
-			$src_show = '<a href="'.$rev.'" target="reverse">'.$src.'</a>';
+			$rev = str_replace('%n', $src, Config::get('display.lookup.url'));
+			$src_show = '<a href="'.$rev.'" target="reverse" class="text-indigo-600 hover:underline">'.$src.'</a>';
 			$clipboard = '';
 		}
-		echo '<td class="record_col"><abbr class="simptip-position-top simptip-smooth simptip-fade" '.$clipboard.' data-tooltip="CallerID: '.$clid.'">'.$src_show.'</abbr></td>' . PHP_EOL;
+		echo '<td class="px-3 py-2 text-sm font-medium text-gray-800"><abbr class="simptip-position-top simptip-smooth simptip-fade" '.$clipboard.' data-tooltip="CallerID: '.$clid.'">'.$src_show.'</abbr></td>' . PHP_EOL;
 	}
 }
 
 function formatApp($app, $lastdata) {
-	$tooltip = $app . '(' . $lastdata . ')';
-	echo '<td class="record_col"><abbr class="simptip-position-top simptip-smooth simptip-fade" data-clipboard data-clipboard-text="'.$tooltip.'" data-tooltip="Приложение: '.$tooltip.'">'.$app.'</abbr></td>' . PHP_EOL;
+	$tooltip = htmlspecialchars($app.'('.$lastdata.')');
+	echo '<td class="px-3 py-2 text-sm text-gray-600"><abbr class="simptip-position-top simptip-smooth simptip-fade" data-clipboard data-clipboard-text="'.$tooltip.'" data-tooltip="יישום: '.$tooltip.'">'.$app.'</abbr></td>' . PHP_EOL;
 }
 
 function formatDst($dst, $dcontext) {
 	$dst_show = $dst;
-	$clipboard = 'data-clipboard data-clipboard-text="'.$dcontext.'"';
+	$clipboard = 'data-clipboard data-clipboard-text="'.htmlspecialchars($dcontext).'"';
 	if ( is_numeric($dst) && strlen($dst) >= Config::get('display.lookup.num_length') && strlen(Config::get('display.lookup.url')) > 0 ) {
-		$rev = str_replace( '%n', $dst, Config::get('display.lookup.url') );
-		$dst_show = '<a href="'.$rev.'" target="reverse">'.$dst.'</a>';
+		$rev = str_replace('%n', $dst, Config::get('display.lookup.url'));
+		$dst_show = '<a href="'.$rev.'" target="reverse" class="text-indigo-600 hover:underline">'.$dst.'</a>';
 		$clipboard = '';
 	}
-	echo '<td class="record_col"><abbr class="simptip-position-top simptip-smooth simptip-fade" '.$clipboard.' data-tooltip="Контекст назначения: '.$dcontext.'">'.$dst_show.'</abbr></td>' . PHP_EOL;
+	echo '<td class="px-3 py-2 text-sm text-gray-700"><abbr class="simptip-position-top simptip-smooth simptip-fade" '.$clipboard.' data-tooltip="קונטקסט: '.htmlspecialchars($dcontext).'">'.$dst_show.'</abbr></td>' . PHP_EOL;
 }
 
 function formatDisposition($disposition, $amaflags) {
 	switch ($amaflags) {
-		case 0:
-			$amaflags = 'DOCUMENTATION';
-			break;
-		case 1:
-			$amaflags = 'IGNORE';
-			break;
-		case 2:
-			$amaflags = 'BILLING';
-			break;
-		case 3:
-		default:
-			$amaflags = 'DEFAULT';
+		case 0: $amaflags = 'DOCUMENTATION'; break;
+		case 1: $amaflags = 'IGNORE'; break;
+		case 2: $amaflags = 'BILLING'; break;
+		default: $amaflags = 'DEFAULT';
 	}
-	// Стиль текста для вызовов
-	$style = '';
 	switch ($disposition) {
 		case 'ANSWERED':
 			$dispTxt = 'נענה';
-			$style = 'answer';
+			$badge = 'bg-green-100 text-green-700';
+			$dot   = 'bg-green-500';
 			break;
 		case 'NO ANSWER':
 			$dispTxt = 'לא נענה';
-			$style = 'noanswer';
+			$badge = 'bg-red-100 text-red-600';
+			$dot   = 'bg-red-500';
 			break;
 		case 'BUSY':
 			$dispTxt = 'תפוס';
-			$style = 'busy';
+			$badge = 'bg-yellow-100 text-yellow-700';
+			$dot   = 'bg-yellow-500';
 			break;
 		case 'FAILED':
 			$dispTxt = 'נכשל';
-			$style = 'failed';
+			$badge = 'bg-gray-100 text-gray-500';
+			$dot   = 'bg-gray-400';
 			break;
 		case 'CONGESTION':
-			$dispTxt = 'Перегрузка';
-			$style = 'עומס';
-			break;			
+			$dispTxt = 'עומס';
+			$badge = 'bg-blue-100 text-blue-600';
+			$dot   = 'bg-blue-400';
+			break;
 		default:
 			$dispTxt = $disposition;
+			$badge = 'bg-gray-100 text-gray-500';
+			$dot   = 'bg-gray-400';
 	}
-	echo '<td class="record_col '.$style.'"><div class="status status-'.$style.'"></div><abbr class="simptip-position-top simptip-smooth simptip-fade" data-clipboard data-clipboard-text="'.$amaflags.'" data-tooltip="דגל: '.$amaflags.'">'.$dispTxt.'</abbr></td>' . PHP_EOL;
+	echo '<td class="px-3 py-2"><abbr class="simptip-position-top simptip-smooth simptip-fade no-underline" data-clipboard data-clipboard-text="'.$amaflags.'" data-tooltip="דגל: '.$amaflags.'"><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium '.$badge.'"><span class="w-1.5 h-1.5 rounded-full '.$dot.'"></span>'.$dispTxt.'</span></abbr></td>' . PHP_EOL;
 }
 
 function formatDuration($duration, $billsec) {
-	$duration = sprintf( '%02d', intval($duration/60) ).':'.sprintf( '%02d', intval($duration%60) );
-	$billduration = sprintf( '%02d', intval($billsec/60) ).':'.sprintf( '%02d', intval($billsec%60) );
-	echo '<td class="record_col"><abbr class="simptip-position-top simptip-smooth simptip-fade" data-clipboard data-clipboard-text="'.$billduration.'" data-tooltip="זמן לחיוב: '.$billduration.'">'.$duration.'</abbr></td>' . PHP_EOL;
+	$dur = sprintf('%02d', intval($duration/60)).':'.sprintf('%02d', intval($duration%60));
+	$bill = sprintf('%02d', intval($billsec/60)).':'.sprintf('%02d', intval($billsec%60));
+	echo '<td class="px-3 py-2 text-sm text-gray-600 tabular-nums"><abbr class="simptip-position-top simptip-smooth simptip-fade" data-clipboard data-clipboard-text="'.$bill.'" data-tooltip="זמן לחיוב: '.$bill.'">'.$dur.'</abbr></td>' . PHP_EOL;
 }
 
 function formatUserField($userfield) {
-	echo '<td class="record_col userfield">'.$userfield.'</td>' . PHP_EOL;
+	echo '<td class="px-3 py-2 text-sm text-gray-600 userfield cursor-pointer hover:text-purple-600">'.$userfield.'</td>' . PHP_EOL;
 }
 
 function formatAccountCode($accountcode) {
-	echo '<td class="record_col"><abbr data-clipboard data-clipboard-text="'.$accountcode.'">'.$accountcode.'</abbr></td>' . PHP_EOL;
+	echo '<td class="px-3 py-2 text-sm text-gray-600"><abbr data-clipboard data-clipboard-text="'.$accountcode.'">'.$accountcode.'</abbr></td>' . PHP_EOL;
 }
 
 /* Asterisk RegExp parser */
