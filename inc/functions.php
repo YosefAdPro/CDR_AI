@@ -143,7 +143,8 @@ function formatChannel($channel) {
 }
 
 function formatClid($clid) {
-	$clid_only = htmlspecialchars(explode(' <', $clid, 2)[0]);
+	$clid_parts = explode(' <', $clid, 2);
+	$clid_only = htmlspecialchars($clid_parts[0]);
 	$clid = htmlspecialchars($clid);
 	echo '<td class="px-3 py-2 text-sm text-gray-700"><abbr class="simptip-position-top simptip-smooth simptip-fade" data-clipboard data-clipboard-text="'.$clid.'" data-tooltip="CallerID: '.$clid.'">'.$clid_only.'</abbr></td>' . PHP_EOL;
 }
