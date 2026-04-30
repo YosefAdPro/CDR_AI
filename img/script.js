@@ -1,6 +1,7 @@
 
 $(document).on('ready', function() {
 	initClipboard();
+	initDatePickers();
 	
 	// Стрелки навигации
 	$('#scroll-box').on('click', '#scroll-up', function() {
@@ -17,46 +18,66 @@ $(document).on('ready', function() {
 		 selectRange( $(this).val() );
 	});	
 	
-	// Показать плеер
+	// נגן inline - לחיצה על כפתור השמעה
 	$('body').on('click', '.img_play', function() {
-		var $player = $(playerId),
-			$overlay = $(playerOverlayId),
-			autoplay = (playerAutoplay === true) ? 'play' : '',
-			docTitle = document.title,
-			$title = (playerTitle === true) ? $(this).data('title') : '',
-			content = 
-				'<div class="plTitle">'+$title+'</div>' +
-				'<div class="plStyle" id="player"></div>'
-		;
-		//link = encodeURIComponent(link);	
-		$overlay.css({
-			'opacity': 1,
-			'visibility': 'visible',
+		var $btn = $(this);
+		var $row = $btn.closest('tr');
+		var $existingPlayer = $row.next('.inline-player-row');
+
+		// סגור נגן פתוח באותה שורה
+		if ($existingPlayer.length > 0) {
+			$existingPlayer.find('audio')[0].pause();
+			$existingPlayer.remove();
+			$btn.css('opacity', '');
+			return;
+		}
+
+		// סגור כל נגן אחר פתוח
+		$('.inline-player-row').each(function() {
+			$(this).find('audio')[0].pause();
+			$(this).prev('tr').find('.img_play').css('opacity', '');
+			$(this).remove();
 		});
-		$player.show();
-		$('title').first().html(playerSymbol + ' ' + docTitle);
-		$player.html(content);
-		this.aplayer = new Uppod({
-			m:"audio",
-			st:"uppodaudio",
-			uid:"player",
-			auto:autoplay,
-			file:$(this).data('link'),
-		});
+
+		var link = $btn.data('link');
+		var title = (playerTitle === true) ? $btn.data('title') : '';
+		var colspan = $row.find('td').length;
+
+		var playerHtml =
+			'<tr class="inline-player-row">' +
+				'<td colspan="' + colspan + '">' +
+					'<div class="inline-player-container">' +
+						(title ? '<div class="player-title">' + title + '</div>' : '') +
+						'<audio class="inline-audio" controls>' +
+							'<source src="' + link + '">' +
+						'</audio>' +
+						'<div class="player-speed">' +
+							'<span>מהירות:</span>' +
+							'<button class="speed-btn active" data-speed="1">x1</button>' +
+							'<button class="speed-btn" data-speed="1.5">x1.5</button>' +
+							'<button class="speed-btn" data-speed="2">x2</button>' +
+						'</div>' +
+					'</div>' +
+				'</td>' +
+			'</tr>';
+
+		$row.after(playerHtml);
+		$btn.css('opacity', '0.5');
+
+		var audio = $row.next('.inline-player-row').find('audio')[0];
+		if (playerAutoplay === true) {
+			audio.play();
+		}
 	});
-	
-	// Скрыть плеер
-	$('body').on('click', '#playerOverlay', function() {
-		var $player = $(playerId),
-			$overlay = $(playerOverlayId),
-			docTitle = document.title;
-		$overlay.css({
-			'visibility': 'hidden',
-			'opacity': 0,
-		});
-		$player.hide();
-		document.title = docTitle.match(/\s(.*?)$/)[1];
-		$player.html('');
+
+	// שליטה במהירות נגן
+	$('body').on('click', '.speed-btn', function() {
+		var $btn = $(this);
+		var speed = parseFloat($btn.data('speed'));
+		var audio = $btn.closest('.inline-player-container').find('audio')[0];
+		audio.playbackRate = speed;
+		$btn.closest('.player-speed').find('.speed-btn').removeClass('active');
+		$btn.addClass('active');
 	});
 	
 	// Проверка обновлений
@@ -122,6 +143,7 @@ $(document).on('ready', function() {
 			success: function(data) {
 				if ( data.trim() != '' ) {
 					$('#content').html(data);
+					injectQuickFilter();
 				} else {
 					$('#content').html('<div id="content-msg">אין נתונים עם הפרמטרים שנבחרו</div>');
 				}
@@ -294,6 +316,124 @@ function selectRange(range) {
 			}
 		});		
 	}
+}
+
+// אתחול flatpickr במקום dropdowns של תאריכים
+function initDatePickers() {
+	if (typeof flatpickr === 'undefined') return;
+
+	// הסתר את ה-dropdowns המקוריים
+	$('#startday, #startmonth, #startyear, #starthour, #startmin').closest('td').find('select[name^="start"]').hide();
+	$('#endday, #endmonth, #endyear, #endhour, #endmin').closest('td').find('select[name^="end"]').hide();
+
+	// מצא את המיקום הנכון להכנסת הפיקרים
+	var $startMin = $('#startmin');
+	var $endMin = $('#endmin');
+
+	// הוסף input לתאריך התחלה
+	$startMin.after('<input type="text" id="fp-start" class="fp-date-input" placeholder="תאריך התחלה" readonly>');
+	$endMin.after('<input type="text" id="fp-end" class="fp-date-input" placeholder="תאריך סיום" readonly>');
+
+	flatpickr.localize(flatpickr.l10ns.he);
+
+	var fpStart = flatpickr('#fp-start', {
+		enableTime: true,
+		dateFormat: 'd/m/Y H:i',
+		time_24hr: true,
+		defaultDate: new Date(
+			$('#startyear').val(),
+			parseInt($('#startmonth').val()) - 1,
+			$('#startday').val(),
+			$('#starthour').val(),
+			$('#startmin').val()
+		),
+		onChange: function(selectedDates) {
+			if (!selectedDates[0]) return;
+			var d = selectedDates[0];
+			$('#startday').val(d.getDate());
+			$('#startmonth').prop('selectedIndex', d.getMonth());
+			$('#startyear option[value="' + d.getFullYear() + '"]').prop('selected', true);
+			$('#starthour').prop('selectedIndex', d.getHours());
+			$('#startmin').prop('selectedIndex', d.getMinutes());
+		}
+	});
+
+	var fpEnd = flatpickr('#fp-end', {
+		enableTime: true,
+		dateFormat: 'd/m/Y H:i',
+		time_24hr: true,
+		defaultDate: new Date(
+			$('#endyear').val(),
+			parseInt($('#endmonth').val()) - 1,
+			$('#endday').val(),
+			$('#endhour').val(),
+			$('#endmin').val()
+		),
+		onChange: function(selectedDates) {
+			if (!selectedDates[0]) return;
+			var d = selectedDates[0];
+			$('#endday').val(d.getDate());
+			$('#endmonth').prop('selectedIndex', d.getMonth());
+			$('#endyear option[value="' + d.getFullYear() + '"]').prop('selected', true);
+			$('#endhour').prop('selectedIndex', d.getHours());
+			$('#endmin').prop('selectedIndex', d.getMinutes());
+		}
+	});
+
+	// עדכן flatpickr כשמשתמשים בבחירת טווח מהיר
+	var origSelectRange = window.selectRange;
+	window.selectRange = function(range) {
+		origSelectRange(range);
+		setTimeout(function() {
+			var startDate = new Date(
+				$('#startyear').val(),
+				parseInt($('#startmonth').val()) - 1,
+				$('#startday').val(),
+				$('#starthour').val() || 0,
+				$('#startmin').val() || 0
+			);
+			var endDate = new Date(
+				$('#endyear').val(),
+				parseInt($('#endmonth').val()) - 1,
+				$('#endday').val(),
+				$('#endhour').val() || 23,
+				$('#endmin').val() || 59
+			);
+			fpStart.setDate(startDate, true);
+			fpEnd.setDate(endDate, true);
+		}, 50);
+	};
+}
+
+// הזרקת תיבת חיפוש מהיר מעל טבלת התוצאות
+function injectQuickFilter() {
+	if ($('.quick-filter-box').length > 0) return;
+	var $table = $('#content table.cdr').first();
+	if ($table.length === 0) return;
+
+	var filterHtml =
+		'<div class="quick-filter-box">' +
+			'<input type="text" id="quick-filter" placeholder="סינון מהיר בתוצאות..." autocomplete="off">' +
+			'<span class="filter-count"></span>' +
+		'</div>';
+
+	$table.before(filterHtml);
+
+	$('#quick-filter').on('input', function() {
+		var term = $(this).val().toLowerCase().trim();
+		var visible = 0;
+		$('#content .record').each(function() {
+			var $row = $(this);
+			var match = term === '' || $row.text().toLowerCase().indexOf(term) !== -1;
+			$row.toggle(match);
+			if (!match) {
+				$row.next('.inline-player-row').hide();
+			} else {
+				visible++;
+			}
+		});
+		$('.filter-count').text(term ? 'מוצגות ' + visible + ' שורות' : '');
+	});
 }
 
 // Копирование в буфер
