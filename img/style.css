@@ -725,6 +725,24 @@ td.congestion {
 	color: #888;
 }
 
+/* כפתור דשבורד בהדר */
+.btn-dashboard {
+	display: inline-block;
+	background: #3c8dbc;
+	color: #fff !important;
+	padding: 3px 12px;
+	border-radius: 5px;
+	font-size: .88em;
+	font-weight: 600;
+	text-decoration: none;
+	transition: background .2s;
+}
+.btn-dashboard:hover {
+	background: #2a6d99;
+	color: #fff !important;
+	text-decoration: none;
+}
+
 /* Flatpickr date inputs */
 .fp-date-input {
 	padding: 3px 8px;
